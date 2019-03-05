@@ -1,0 +1,53 @@
+package gui;
+
+import javafx.scene.control.TextField;
+
+//			Making sure only one number in textfield
+
+public class OneNumberTextField extends TextField {
+	private int maxlength;
+	
+	public OneNumberTextField() {
+		super();
+		this.maxlength = 1;
+	}
+	
+	@Override
+	public void replaceText(int start, int end, String text) {
+		if (matches(text)) {
+// 			Read the text in the textfield
+            String currentText = this.getText() == null ? "" : this.getText();
+
+            String finalText = currentText.substring(0, start) + text + currentText.substring(end);
+            
+//			Checking max length is not excedeed 
+            int numberOfexceedingCharacters = finalText.length() - this.maxlength;
+            if (numberOfexceedingCharacters <= 0) {
+
+                super.replaceText(start, end, text);
+            }
+            else {
+            	
+                String cutInsertedText = text.substring(
+                        0, 
+                        text.length() - numberOfexceedingCharacters
+                );
+
+
+                super.replaceText(start, end, cutInsertedText);
+            }
+        }
+	}
+	
+	@Override
+	public void replaceSelection(String text) {
+		if (matches(text)) {
+			super.replaceSelection(text);
+		}
+	}
+
+	private boolean matches(String text) {
+		return text.matches("[0-9]*");
+	}
+
+}
