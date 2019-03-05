@@ -1,0 +1,160 @@
+package gui;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Scanner;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.Map.Entry;
+
+import javafx.application.Application;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.ListView;
+import javafx.scene.control.RadioButton;
+import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleGroup;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.TilePane;
+import javafx.stage.Stage;
+import javafx.stage.Window;
+import sudoku.SudokuSolver;
+
+public class SudokuViewer extends Application {
+
+	@Override
+	public void start(Stage primaryStage) throws Exception {
+		/**
+		 * 
+		 */
+		SudokuSolver sudoku = new SudokuSolver();
+
+		/**
+		 * Setup window Setup list and buttons Setup actions for buttons
+		 */
+		BorderPane root = new BorderPane();
+		Scene scene = new Scene(root, 270, 296);
+		Dialog<String> unsolvableDialog = new Dialog<>();
+		Dialog<String> illegalDialog = new Dialog<>();
+		unsolvableDialog.setContentText("Sudoku is unsolvable.");
+		Window window = unsolvableDialog.getDialogPane().getScene().getWindow();
+		window.setOnCloseRequest(event -> window.hide());
+		illegalDialog.setContentText("Invalid input");
+		Window window2 = illegalDialog.getDialogPane().getScene().getWindow();
+		window2.setOnCloseRequest(event -> window2.hide());
+
+		primaryStage.setTitle("Sudoku");
+		primaryStage.setScene(scene);
+		primaryStage.show();
+
+		/**
+		 * Setup buttons and textField
+		 * 
+		 */
+		OneNumberTextField[] textField = new OneNumberTextField[81];
+		TilePane tilePane = new TilePane();
+		tilePane.setMaxWidth(270);
+		tilePane.setHgap(0);
+		tilePane.setPrefColumns(9);
+		int i = 0;
+		for (int row =0; row<9; row++) {
+		for (int col = 0; col < 9; col++) {
+			textField[i] = new OneNumberTextField();
+			textField[i].setText("0");
+			textField[i].setPrefWidth(30);
+			textField[i].setPrefHeight(30);
+			tilePane.getChildren().add(textField[i]);
+			if((row<3 || row>5) && (col<3 || col>5) || ((row>2 && row<6) && (col>2 && col <6))) {
+			textField[i].setStyle("-fx-control-inner-background: yellow");
+			}
+			else {
+				textField[i].setStyle("-fx-control-inner-background: blue");
+			}
+			i++;
+			
+		}
+		}
+		
+		Button clear = new Button("Clear");
+		Button solve = new Button("Solve");
+		solve.setDefaultButton(true);
+		solve.setOnAction((ActionEvent e) -> {
+			
+			/**
+			 * Read from interface textfield when click on 'Solve'. Runs the Solve method in SudokuSolver and checking rules
+			 * 
+			 */
+			int thisValue;
+			String thisString;
+			TextField thisField;
+			boolean correctInput = true;
+			int index = 0;
+			for (int row = 0; row <9; row++) {
+				for(int col = 0; col<9; col++) {
+				thisField = textField[index];
+				index++;
+				thisString = thisField.getText();
+				thisValue = Integer.parseInt(thisString);
+				
+				if (sudoku.isByRules(row, col, thisValue)) {
+					sudoku.setValue(row, col, thisValue);
+				}
+				else {
+					unsolvableDialog.showAndWait();
+					correctInput = false;
+					return;
+				}
+				}
+			}
+	
+			if (correctInput) {
+				if (sudoku.solve()) {
+						index = 0;
+					for (int row=0; row< 9; row++) {
+					for(int col=0; col<9; col++) {
+						textField[index].setText(sudoku.getStringVal(row,col));
+						index++;
+					}
+					}
+				}else {
+					unsolvableDialog.showAndWait();
+				}
+			}	
+
+			});
+	
+		clear.setOnAction((ActionEvent e) -> {
+			/**
+			 * Clears the Sudoku-object and clears all textfields
+			 * values
+			 */
+			sudoku.clear();
+			for (TextField field : textField) {
+				field.setText("0");
+			}
+
+		});
+		
+		HBox hbox = new HBox();
+		HBox.setHgrow(solve, Priority.ALWAYS);
+		HBox.setHgrow(clear, Priority.ALWAYS);
+//		HBox.setHgrow(scene, Priority.ALWAYS);
+		solve.setPrefWidth(135);
+		clear.setPrefWidth(135);
+		hbox.getChildren().addAll(solve, clear);
+		root.setBottom(hbox);
+		root.setTop(tilePane);
+		}
+		
+	public static void main(String[] args) {
+		Application.launch(args);
+}
+}
