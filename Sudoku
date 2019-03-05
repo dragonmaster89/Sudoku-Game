@@ -1,0 +1,195 @@
+package sudoku;
+
+public class SudokuSolver {
+
+	
+	private int [][] board;
+	public static final int EMPTY = 0; // 0 represent empty cell
+	public static final int SIZE = 9; //size board (size x size)
+	int random;
+	
+	public SudokuSolver() {
+		board = new int[SIZE][SIZE];
+	}
+	public SudokuSolver(int[][] board) {
+		this.board = board;
+	}
+	
+	public void clear() {
+		board = new int [SIZE][SIZE];
+	}
+	
+	public String getStringVal(int row, int col){
+		if (board[row][col] == 9) return "9";
+		else if (board[row][col]== 8) return "8";
+		else if (board[row][col] == 7) return "7";
+		else if (board[row][col] == 6) return "6";
+		else if (board[row][col] == 5) return "5";
+		else if (board[row][col] == 4) return "4";
+		else if (board[row][col] == 3) return "3";
+		else if (board[row][col] == 2) return "2";
+		else if (board[row][col] == 1) return "1";
+		else return "0";
+	}
+	
+	/**
+	 * check if current number excists in current row
+	 * @param row current row
+	 * @param col current column
+	 * @param number number to check
+	 * @return true if number excists in row
+	 */
+	private boolean isInRow (int row, int col, int number) {
+		for (int i=0; i<SIZE; i++) {
+			if(i != col){
+			if(board [row][i] == number && number !=0) {
+				return true;
+			}
+		}
+		}
+		return false;
+	}
+	
+	/**
+	 * check if current number excists in current column
+	 * @param row current row
+	 * @param col current column
+	 * @param number number to check
+	 * @return true if number excists in row
+	 */
+	private boolean isInCol (int row, int col, int number) {
+		for (int i=0; i<SIZE; i++) {
+			if(i != row) {
+			if(board [i][col] == number && number !=0) {
+				return true;
+			}
+			}
+		}
+		return false;
+			
+	}
+	/**
+	 * check if current number excists in current box 3*3
+	 * @param row current row
+	 * @param col current column
+	 * @param number number to check
+	 * @return true if number excists in box
+	 */
+	private boolean isInBox(int row, int col, int number) {
+		
+		int r = row - (row % 3); //how many times fit 3 in the current row number. Reminder gives number of cells to the left of current cell, i.e. where to start for-loop
+		int c = col - (col % 3);
+				
+		for (int i=r; i< r+3; i++) {  //stops at 3 cells to the right of r
+			for(int j=c; j< c+3; j++) {
+				if(!(i == row && j == col)) {
+				if( board [i][j] == number && number !=0 ) {
+					return true;
+				}
+			}			
+		
+		}
+		}
+		return false;	
+}
+	/**
+	 * check if current number is according to the soduku rules
+	 * @param row current row
+	 * @param col current column
+	 * @param number number to check
+	 * @return true if number is according to the rules
+	 */
+	public boolean isByRules (int row, int col, int number) {
+		return (!isInRow(row,col,number) && !isInCol(row,col,number) && !isInBox(row,col,number));
+	}
+	
+	/**
+	 * check and returns the value of the current cell
+	 * @param row current row
+	 * @param col current column
+	 * @return value of the current cell
+	 */
+	private int getValue(int row, int col) {
+		return board[row][col];
+	}
+	
+	/**
+	 * Set value to cell(row,col)
+	 * @param row current row
+	 * @param col curernt column
+	 * @param val current number
+	 */
+	public void setValue(int row, int col, int val) {
+		board[row][col] = val;
+	}
+	
+	/**
+	 * Solves the sudoku game recursively 
+	 * @param row current row, (0,0) first call
+	 * @param col current column
+	 * @return true if game is solved, false if not solved
+	 */
+	
+	private boolean solve(int row, int col) {
+		
+		// if passed down to row 9 the game is solved, returning true
+		if(row == 9) {
+			System.out.println("SOLVED");
+			return true;
+		}
+		//check if cell is not empty and according to rules
+		if(getValue(row, col) != EMPTY) {  
+			if(!isByRules(row,col,getValue(row,col))) {
+				return false;
+			}
+			//Start backtracking, check where on board we are to set start value for next call
+			if(solve(col == 8 ? (row +1) : row , (col+1)%9)) {
+				return true; //return true if next cell returns true
+			}
+			return false;
+		}	
+			 	
+				for(int n=1; n<=9; n++) {
+//					if(row ==0 && col==0) {
+//			 		double rand =  Math.random()*10; //otherwise it will allways try 1 on (0,0)
+//			 		n = (int) rand;
+//				}
+					if(isByRules(row, col, n)) {
+						setValue(row,col,n);
+			//Start backtracking, check where on board we are to set start value for next call
+						if(solve(col == 8 ? (row +1) : row , (col+1)%9)) {
+					return true;  //return true if next cell returns true
+						}
+							else {
+								setValue(row,col,EMPTY);  //empty cell if next cell can't get a value due to rules
+								}
+					}
+			}
+				
+		return false;  //return false if unsolvable 
+		}
+		
+	
+		public boolean solve() {
+		return solve(0,0);
+	}
+		
+		public String toString() {
+			StringBuilder sb = new StringBuilder();
+			for (int i = 0; i < 9; i++) {
+				for (int j = 0; j < 9; j++) {
+
+					sb.append(getValue(i, j));
+					sb.append(" ");
+				}
+				sb.append("\n");
+			}
+			return sb.toString();
+		}
+		public static void main(String [] args) {
+			SudokuSolver sudoku = new SudokuSolver();
+			sudoku.solve();
+			System.out.print(sudoku.toString());
+			System.out.print((Math.random()*10));
+	}
+}
